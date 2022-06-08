@@ -17,9 +17,10 @@ public class ThreeSumBenchmark {
 
     public void runBenchmarks() {
         System.out.println("ThreeSumBenchmark: N=" + n);
-        benchmarkThreeSum("ThreeSumQuadratic", (xs) -> new ThreeSumQuadratic(xs).getTriples(), n, timeLoggersQuadratic);
-        benchmarkThreeSum("ThreeSumQuadrithmic", (xs) -> new ThreeSumQuadrithmic(xs).getTriples(), n, timeLoggersQuadrithmic);
-        benchmarkThreeSum("ThreeSumCubic", (xs) -> new ThreeSumCubic(xs).getTriples(), n, timeLoggersCubic);
+//        benchmarkThreeSum("ThreeSumQuadratic", (xs) -> new ThreeSumQuadratic(xs).getTriples(), n, timeLoggersQuadratic);
+        benchmarkThreeSum("ThreeSumQuadraticCallipers", (xs) -> new ThreeSumQuadraticWithCalipers(xs).getTriples(), n, timeLoggersQuadratic);
+//        benchmarkThreeSum("ThreeSumQuadrithmic", (xs) -> new ThreeSumQuadrithmic(xs).getTriples(), n, timeLoggersQuadrithmic);
+//        benchmarkThreeSum("ThreeSumCubic", (xs) -> new ThreeSumCubic(xs).getTriples(), n, timeLoggersCubic);
     }
 
     public static void main(String[] args) {
@@ -35,6 +36,15 @@ public class ThreeSumBenchmark {
     private void benchmarkThreeSum(final String description, final Consumer<int[]> function, int n, final TimeLogger[] timeLoggers) {
         if (description.equals("ThreeSumCubic") && n > 4000) return;
         // FIXME
+        UnaryOperator<int[]> preCheck = (xs) -> {
+            if (xs.length < n * 95 / 100) {
+                System.err.println("Insufficient ints: " + xs.length);
+                return null;
+            } else return xs;
+        };
+        final double t1 = new Benchmark_Timer<>(description, preCheck, function).runFromSupplier(supplier, runs);
+        for (TimeLogger timeLogger : timeLoggers) timeLogger.log(t1, n);
+//        System.out.println(t1);
         // END 
     }
 
@@ -47,6 +57,10 @@ public class ThreeSumBenchmark {
             new TimeLogger("Normalized time per run (n^2 log n): ", (time, n) -> time / n / n / Utilities.lg(n) * 1e6)
     };
     private final static TimeLogger[] timeLoggersQuadratic = {
+            new TimeLogger("Raw time per run (mSec): ", (time, n) -> time),
+            new TimeLogger("Normalized time per run (n^2): ", (time, n) -> time / n / n * 1e6)
+    };
+    private final static TimeLogger[] timeLoggersQuadraticCallipers = {
             new TimeLogger("Raw time per run (mSec): ", (time, n) -> time),
             new TimeLogger("Normalized time per run (n^2): ", (time, n) -> time / n / n * 1e6)
     };
