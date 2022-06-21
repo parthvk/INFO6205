@@ -1,15 +1,19 @@
 /*
  * Copyright (c) 2018. Phasmid Software
  */
-
 package edu.neu.coe.info6205.util;
 
+import static com.google.common.base.CharMatcher.is;
+import edu.neu.coe.info6205.sort.elementary.InsertionSort;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import static edu.neu.coe.info6205.util.Utilities.formatWhole;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 /**
  * This class implements a simple Benchmark utility for measuring the running time of algorithms.
@@ -125,4 +129,73 @@ public class Benchmark_Timer<T> implements Benchmark<T> {
     private final Consumer<T> fPost;
 
     final static LazyLogger logger = new LazyLogger(Benchmark_Timer.class);
+
+
+    public static void main(String[] args) {
+        Random r = new Random();
+        InsertionSort in = new InsertionSort();
+
+        for (int n = 2000; n < 35000; n = n * 2) {
+
+            //RANDOM Array
+            ArrayList<Integer> l_random = new ArrayList<>();
+            for (int i = 0; i < n; i++)
+                l_random.add(r.nextInt(n));
+
+            //ORDERED Array
+            ArrayList<Integer> l_arranged = new ArrayList<>();
+            for (int i = 0; i < n; i++)
+                l_arranged.add(i + 1);
+
+            //REVERSE Array
+            ArrayList<Integer> l_reverse = new ArrayList<>();
+            for (int i = 0; i < n; i++)
+                l_reverse.add(n - i);
+
+            //PARTIALLY ORDERED Array
+            List<Integer> l_partial = new ArrayList<>();
+            for (int i = 0; i < n; i++) {
+                if (i > n / 2) {
+                    l_partial.add(r.nextInt(n));
+                } else {
+                    l_partial.add(i);
+                }
+            }
+
+            Integer[] randomArray = l_random.toArray(new Integer[0]);
+            Integer[] sortedArray = l_arranged.toArray(new Integer[0]);
+            Integer[] reverseArray = l_reverse.toArray(new Integer[0]);
+            Integer[] partialArray = l_partial.toArray(new Integer[0]);
+
+            Benchmark<Boolean> bmRand = new Benchmark_Timer<>(
+                    "randomSort", b -> {
+                in.sort(randomArray.clone(), 0, randomArray.length);
+            });
+            double resultRand = bmRand.run(true, 10);
+
+            Benchmark<Boolean> bmArenged = new Benchmark_Timer<>(
+                    "arrangedSort", b -> {
+                in.sort(sortedArray.clone(), 0, sortedArray.length);
+            });
+            double resultOrganised = bmArenged.run(true, 10);
+
+            Benchmark<Boolean> bmRev = new Benchmark_Timer<>(
+                    "reverseSort", b -> {
+                in.sort(reverseArray.clone(), 0, reverseArray.length);
+            });
+            double resultRev = bmRev.run(true, 10);
+
+            Benchmark<Boolean> bmPartial = new Benchmark_Timer<>(
+                    "partialSort", b -> {
+                in.sort(partialArray.clone(), 0, partialArray.length);
+            });
+            double resultPartial = bmPartial.run(true, 10);
+
+            System.out.println(n);
+            System.out.println("Random\t" + "Ordered\t" + "Reverse\t" + "Partial\t");
+            System.out.println(resultRand + "\t" + resultOrganised + "\t" + resultRev + "\t" + resultPartial);
+
+        }
+
+    }
 }
